@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Diksha — Stylist Studio Test</title>
+<style>
+:root{--bg:#0c1018;--panel:#151c29;--panel2:#1d2737;--line:#2d3a4e;--pink:#ff6f9f;--gold:#f4c978;--text:#f6f2f5;--muted:#a9b3c2}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px system-ui,-apple-system,sans-serif}
+header{padding:15px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;background:#101722;position:sticky;top:0;z-index:5}
+h1{font-size:18px;margin:0;letter-spacing:.4px}header small{color:var(--muted)}
+main{max-width:1200px;margin:auto;padding:14px;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(300px,.85fr);gap:14px}
+.stage{background:radial-gradient(ellipse at 50% 40%,#33445b 0,#1a2637 42%,#101722 78%);border:1px solid var(--line);border-radius:18px;min-height:620px;position:relative;overflow:hidden}
+#view{position:absolute;inset:0}#view canvas{width:100%;height:100%;display:block}
+.stagebar{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;gap:8px;pointer-events:none}
+.pill{background:#101722cc;border:1px solid #536178;color:#fff;border-radius:30px;padding:8px 12px;font-size:12px}
+.load{position:absolute;inset:auto 14px 14px 14px;background:#111a27eF;border:1px solid var(--line);border-radius:14px;padding:14px}
+.load strong{display:block;margin-bottom:5px}.load p{margin:4px 0 10px;color:var(--muted);font-size:13px}
+button,.filelabel{background:var(--panel2);border:1px solid #40516a;color:var(--text);padding:10px 12px;border-radius:10px;font:inherit;cursor:pointer}
+button:active,.filelabel:active{transform:scale(.98)}button.primary{background:linear-gradient(120deg,#fa6c9b,#ba6ee8);border:0;color:#160f1b;font-weight:750}
+input[type=file]{display:none}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:15px;min-width:0}
+.panel h2{font-size:17px;margin:0 0 4px}.sub{color:var(--muted);font-size:12px;margin:0 0 13px}
+.role{display:flex;gap:8px;align-items:center;background:#202b3b;padding:11px;border-radius:12px;margin-bottom:13px;font-size:13px}
+.role b{color:var(--gold)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}
+.tabs button{font-size:12px;padding:8px 10px}.tabs button.active{background:var(--pink);color:#220d18;border-color:var(--pink);font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.item{background:#202b3b;border:1px solid var(--line);border-radius:12px;padding:12px;text-align:left;min-height:76px}
+.item b{display:block;font-size:13px}.item span{display:block;color:var(--muted);font-size:11px;margin-top:4px}
+.item.selected{border-color:var(--pink);box-shadow:inset 0 0 0 1px var(--pink)}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.status{font-size:12px;color:var(--muted);line-height:1.5;margin-top:12px;padding:10px;background:#111a27;border-radius:10px}
+.score{display:flex;justify-content:space-between;align-items:center;margin-top:13px;padding:12px;background:#202b3b;border-radius:12px}
+.score strong{font-size:22px;color:var(--gold)}
+footer{max-width:1200px;margin:0 auto;padding:0 14px 22px;color:var(--muted);font-size:12px;line-height:1.5}
+@media(max-width:760px){main{grid-template-columns:1fr;padding:9px}.stage{min-height:56vh;height:56vh}.panel{padding:13px}header{padding:12px}.load{padding:10px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<header><div><h1>DIKSHA · STYLIST STUDIO</h1><small>Fashion Battle — playable layout test</small></div><span class="pill">STYLIST MODE</span></header>
+<main>
+<section class="stage">
+ <div id="view"></div>
+ <div class="stagebar"><span class="pill" id="modelState">No character loaded</span><span class="pill">FULL BODY PREVIEW</span></div>
+ <div class="load">
+  <strong>Load your rigged character</strong>
+  <p>Choose your FBX or GLB file from Files. The model stays on this device; it is not uploaded.</p>
+  <label class="filelabel" for="modelFile">Choose FBX / GLB</label>
+  <input id="modelFile" type="file" accept=".fbx,.glb,.gltf">
+  <p style="margin-top:10px"><strong>Optional: load this character's texture files</strong></p>
+  <label class="filelabel" for="textureFiles">Choose texture images</label>
+  <input id="textureFiles" type="file" accept="image/*" multiple>
+  <button id="resetView">Reset view</button>
+  <button id="aPose">Set A-pose arms</button>
+  <button id="showBones">Show rig bone names</button>
+ </div>
+</section>
+<aside class="panel">
+ <h2>Style the client</h2><p class="sub">Diksha is the stylist — the character is the model.</p>
+ <div class="role"><span>✦</span><span><b>YOUR ROLE:</b> Choose a look, prepare the runway outfit and score the styling.</span></div>
+ <div><small style="color:var(--muted)">CHALLENGE</small><div style="font-weight:700;margin-top:3px">Birthday Glam · Evening Runway</div></div>
+ <div class="tabs" id="tabs">
+  <button class="active" data-cat="Outfits">Outfits</button><button data-cat="Indian">Indian</button><button data-cat="Western">Western</button><button data-cat="Shoes">Shoes</button><button data-cat="Jewellery">Jewellery</button><button data-cat="Extras">Extras</button>
+ </div>
+ <div class="grid" id="items"></div>
+ <div class="controls"><button class="primary" id="runway">▶ Runway walk</button><button id="judge">Judge look</button><button id="clear">Clear selections</button></div>
+ <div class="score"><div><small style="color:var(--muted)">STYLE SCORE</small><div id="verdict">Waiting for your look</div></div><strong id="points">—</strong></div>
+ <div class="status" id="status">Waiting for the new CC_Base FBX. Choose its texture images as well if they are not embedded in the FBX.</div>
+</aside>
+</main>
+<footer>
+<strong>Honest prototype note:</strong> This is a character-loading and game-interface test, not the finished Fashion Battle game. Wardrobe buttons currently record styling choices only; they do not yet put real fitted garments on the character. Real sarees, lehengas, dresses, shoes and accessories need separate 3D clothing assets fitted/weighted to this exact character. Runway animation will play only if the uploaded model contains a compatible animation clip.
+</footer>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {FBXLoader} from 'three/addons/loaders/FBXLoader.js';
+import {AnimationMixer} from 'three';
+const host=document.getElementById('view'),status=document.getElementById('status'),state=document.getElementById('modelState');
+const scene=new THREE.Scene();scene.background=null;
+const camera=new THREE.PerspectiveCamera(32,1,.01,1000);camera.position.set(0,1.5,5);
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=0.82;
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+host.appendChild(renderer.domElement);
+const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.target.set(0,1,0);
+scene.add(new THREE.HemisphereLight(0xffffff,0x536078,1.15));
+const key=new THREE.DirectionalLight(0xffffff,1.35);key.position.set(3,5,4);key.castShadow=true;key.shadow.mapSize.set(1024,1024);scene.add(key);
+const fill=new THREE.DirectionalLight(0xd9e5ff,0.48);fill.position.set(-4,2,3);scene.add(fill);
+const rim=new THREE.DirectionalLight(0xffc4d8,0.32);rim.position.set(-4,2,-3);scene.add(rim);
+const floor=new THREE.GridHelper(8,24,0x65748b,0x344154);floor.position.y=-.02;scene.add(floor);
+let current=null,mixer=null,clock=new THREE.Clock(),clips=[],armPoseOriginal=[],textureObjectURLs=[];
+function resize(){const w=host.clientWidth,h=host.clientHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false)}new ResizeObserver(resize).observe(host);resize();
+function setAPose(){
+ if(!current){status.textContent='Load the FBX character first.';return;}
+ const bones=[];current.traverse(o=>{if(o.isBone)bones.push(o)});
+ const byName=new Map(bones.map(b=>[b.name.toLowerCase(),b]));
+ const left=byName.get('cc_base_l_upperarm'),right=byName.get('cc_base_r_upperarm');
+ const findChildBone=(root,rx)=>{
+   const stack=[...root.children];
+   while(stack.length){const n=stack.shift();if(n.isBone&&rx.test(n.name))return n;stack.push(...n.children)}
+   return null;
+ };
+ if(!left||!right){
+   status.textContent='This is not the expected CC_Base rig. Found '+bones.length+' bones; upper-arm bones missing.';
+   return;
+ }
+ const pairs=[
+  {label:'Left',upper:left,forearm:findChildBone(left,/cc_base_l_forearm/i)},
+  {label:'Right',upper:right,forearm:findChildBone(right,/cc_base_r_forearm/i)}
+ ];
+ if(pairs.some(p=>!p.forearm)){
+   status.textContent='Found CC_Base upper arms, but could not locate both forearm descendants. No pose changes made.';
+   return;
+ }
+ // Always restore the first captured pose before recalculating, avoiding cumulative clicks.
+ for(const item of armPoseOriginal)item.bone.quaternion.copy(item.rotation);
+ current.updateMatrixWorld(true);
+ const box=new THREE.Box3().setFromObject(current);
+ const center=box.getCenter(new THREE.Vector3());
+ for(const p of pairs){
+   const shoulder=p.upper.getWorldPosition(new THREE.Vector3());
+   const elbow=p.forearm.getWorldPosition(new THREE.Vector3());
+   const currentDir=elbow.sub(shoulder).normalize();
+   const outward=shoulder.x>=center.x?1:-1;
+   // Symmetric 30-degree-down target in the character's horizontal plane.
+   const targetDir=new THREE.Vector3(outward*Math.cos(Math.PI/6),-Math.sin(Math.PI/6),0).normalize();
+   const delta=new THREE.Quaternion().setFromUnitVectors(currentDir,targetDir);
+   const worldQ=p.upper.getWorldQuaternion(new THREE.Quaternion());
+   const desiredWorld=delta.multiply(worldQ);
+   if(!armPoseOriginal.some(x=>x.bone===p.upper))armPoseOriginal.push({bone:p.upper,rotation:p.upper.quaternion.clone()});
+   if(p.upper.parent){
+     const parentWorld=p.upper.parent.getWorldQuaternion(new THREE.Quaternion());
+     p.upper.quaternion.copy(parentWorld.invert().multiply(desiredWorld));
+   }else p.upper.quaternion.copy(desiredWorld);
+   current.updateMatrixWorld(true);
+ }
+ status.textContent='A-pose adjustment applied using CC_Base_L_Upperarm and CC_Base_R_Upperarm. Please inspect both arms; exact rest-pose calibration may still be needed.';
+}
+function frameObject(obj){const box=new THREE.Box3().setFromObject(obj);const size=box.getSize(new THREE.Vector3());const center=box.getCenter(new THREE.Vector3());obj.position.sub(center);const max=Math.max(size.x,size.y,size.z)||1;camera.position.set(0,max*.35,max*2.6);controls.target.set(0,0,0);controls.update()}
+let localTextureMap=new Map();
+document.getElementById('textureFiles').addEventListener('change',e=>{
+ textureObjectURLs.forEach(u=>URL.revokeObjectURL(u));textureObjectURLs=[];
+ localTextureMap.clear();
+ for(const f of e.target.files){
+   const u=URL.createObjectURL(f);textureObjectURLs.push(u);
+   localTextureMap.set(f.name.toLowerCase(),u);
+ }
+ status.textContent='Selected '+localTextureMap.size+' local texture image(s). Load or reload the FBX to apply matching files.';
+});
+async function loadFile(file){if(!file)return;const ext=file.name.toLowerCase().split('.').pop();if(!['fbx','glb','gltf'].includes(ext)){status.textContent='Please choose an FBX, GLB or GLTF file. Selected: '+file.name;return;}status.textContent='Loading '+file.name+'…';state.textContent='Loading character…';if(current)scene.remove(current);mixer=null;clips=[];
+try{let obj;if(file.name.toLowerCase().endsWith('.fbx')){
+ const manager=new THREE.LoadingManager();
+ manager.setURLModifier(url=>{
+   const base=decodeURIComponent(url.split(/[\\/]/).pop()||'').toLowerCase();
+   return localTextureMap.get(base)||url;
+ });
+ obj=new FBXLoader(manager).parse(await file.arrayBuffer(),'');clips=obj.animations||[];
+}else{const url=URL.createObjectURL(file);const gltf=await new GLTFLoader().loadAsync(url);obj=gltf.scene;clips=gltf.animations||[];URL.revokeObjectURL(url)}
+current=obj;
+obj.traverse(o=>{
+ if(o.isMesh){
+   o.castShadow=true;o.receiveShadow=true;
+   if(o.material){
+     const mats=Array.isArray(o.material)?o.material:[o.material];
+     mats.forEach(m=>{
+       if(m.map){m.map.colorSpace=THREE.SRGBColorSpace;m.map.anisotropy=renderer.capabilities.getMaxAnisotropy();m.map.needsUpdate=true;}
+       if('roughness' in m && m.roughness<0.18)m.roughness=0.28;
+       if('metalness' in m && m.metalness>0.8)m.metalness=0.55;
+       m.needsUpdate=true;
+     });
+   }
+ }
+});
+scene.add(obj);frameObject(obj);if(clips.length){mixer=new AnimationMixer(obj);mixer.clipAction(clips[0]).play();status.textContent='Character loaded with clearer lighting and texture filtering. '+clips.length+' animation clip(s) found.'}else{status.textContent='Character loaded with clearer lighting and texture filtering. No embedded animation clip found; a walk cycle still needs to be added.'}state.textContent='Character loaded ✓';
+}catch(e){console.error(e);state.textContent='Load failed';status.textContent='Could not load this file in Safari. Try a GLB export or send me the exact error: '+(e.message||e)}}
+document.getElementById('modelFile').addEventListener('change',e=>loadFile(e.target.files[0]));
+document.getElementById('resetView').onclick=()=>{if(current)frameObject(current)};
+document.getElementById('aPose').onclick=setAPose;
+document.getElementById('showBones').onclick=()=>{
+ if(!current){status.textContent='Load the character first.';return;}
+ const names=[];current.traverse(o=>{if(o.isBone)names.push(o.name||'(unnamed bone)')});
+ status.textContent=names.length?('Found '+names.length+' bones: '+names.join(', ')):'No THREE.Bone objects detected in this file.';
+};
+document.getElementById('runway').onclick=()=>{if(mixer&&clips.length){mixer.stopAllAction();mixer.clipAction(clips[0]).reset().play();status.textContent='Playing first embedded animation: '+(clips[0].name||'Animation 1')}else status.textContent='No animation clip found. This model can be viewed, but a runway walk has not been added yet.'};
+let category='Outfits',selected=new Set();
+const catalog={
+Outfits:[['Party dress','Evening look'],['Ball gown','Formal runway'],['Cocktail dress','Modern glam'],['Jumpsuit','Chic look']],
+Indian:[['Saree','Traditional look'],['Lehenga','Festive look'],['Anarkali suit','Elegant look'],['Kurti set','Casual ethnic']],
+Western:[['Top + jeans','Street style'],['Skirt set','Trendy look'],['Blazer set','Smart chic'],['Sportswear','Athleisure']],
+Shoes:[['Heels','Evening footwear'],['Sneakers','Street footwear'],['Flats','Comfort footwear'],['Boots','Statement footwear']],
+Jewellery:[['Earrings','Accessories'],['Necklace','Accessories'],['Bangles','Accessories'],['Hair clips','Accessories']],
+Extras:[['Handbag','Finishing touch'],['Sunglasses','Finishing touch'],['Watch','Finishing touch'],['Hair style','Character styling']]
+};
+function renderItems(){document.getElementById('items').innerHTML='';catalog[category].forEach(([name,desc])=>{const b=document.createElement('button');b.className='item'+(selected.has(name)?' selected':'');b.innerHTML='<b>'+name+'</b><span>'+desc+'</span>';b.onclick=()=>{selected.has(name)?selected.delete(name):selected.add(name);renderItems()};document.getElementById('items').appendChild(b)})}
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{category=b.dataset.cat;document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('active',x===b));renderItems()});
+document.getElementById('clear').onclick=()=>{selected.clear();renderItems();document.getElementById('points').textContent='—';document.getElementById('verdict').textContent='Waiting for your look'};
+document.getElementById('judge').onclick=()=>{const n=selected.size;const score=Math.min(100,n*18+10);document.getElementById('points').textContent=score+'/100';document.getElementById('verdict').textContent=n?'Look concept scored':'Choose some styling pieces';status.textContent=n+' styling choices selected. This is a UI scoring test, not a visual garment fit evaluation.'};
+function animate(){requestAnimationFrame(animate);const dt=clock.getDelta();if(mixer)mixer.update(dt);controls.update();renderer.render(scene,camera)}animate();
+renderItems();
+</script>
+</body></html>
